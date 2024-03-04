@@ -1,26 +1,15 @@
-const jwt = require('jsonwebtoken');
+function errorHandler(err, req, res, next) {
+    console.error(err);
 
-function authenticateToken(req, res, next) {
-    // Get the token from the request headers
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    // Check if the token exists
-    if (!token) {
-        return res.status(401).json({ error: 'Access token not found' });
+    // Handle different types of errors and return appropriate responses
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({ error: err.message });
     }
 
-    try {
-        const key = 'your-secret-key'
-        // Verify the token and attach it to the request object
-        req.user = jwt.verify(token, key);
+    // Handle other types of errors
 
-        // Proceed to the next middleware or route handler
-        next();
-    } catch (err) {
-        // Token verification failed
-        return res.status(403).json({ error: 'Invalid token' });
-    }
+    // Default error response
+    res.status(500).json({ error: 'Internal Server Error' });
 }
 
-module.exports = authenticateToken;
+module.exports = errorHandler;
