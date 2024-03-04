@@ -35,8 +35,8 @@ async function getPosts(req, res) {
 }
 
 async function createPost(req, res) {
-    let username = req.user.username;
-    let user = await postService.getUserByUsername(username);
+    let user = await postService.getUserByUsername(req.user.username);
+    let username = user.displayName;
     let userImg = user.profilePic;
     console.log(userImg)
     const post = await postService.createPost(username, userImg, req.body.postText, req.body.postImg);
@@ -124,9 +124,9 @@ async function likePost(req, res) {
 
 async function createComment(req, res) {
     let postId = req.params.postId;
-    let username = req.user.username;
-    let user = await postService.getUserByUsername(username);
-    let userImg = user.displayName;
+    let user = await postService.getUserByUsername(req.user.username);
+    let userImg = user.profilePic;
+    let username = user.displayName;
     let commentText = req.body.text;
     const result = await postService.createComment(postId, username, userImg, commentText);
     res.json(result)
@@ -135,7 +135,8 @@ async function createComment(req, res) {
 async function editComment(req, res) {
     let postId = req.params.postId;
     let commentId = req.params.commentId;
-    let username = req.params.id;
+    let user = postService.getUserByUsername(req.user.username);
+    let username = user.displayName;
     let commentText = req.body.text;
     const result = await postService.editComment(postId, username, commentText, commentId);
     res.json(result)
