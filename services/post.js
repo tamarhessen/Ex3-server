@@ -103,7 +103,6 @@ async function getPostById(postId) {
 }
 
 async function editPost(originalPost, text, img) {
-    const newPost = originalPost;
     console.log("hello world")
     if (text) {
         originalPost.PostText = text;
@@ -112,7 +111,7 @@ async function editPost(originalPost, text, img) {
         originalPost.PostImg = img;
     }
     await originalPost.save();
-    return newPost;
+    return originalPost;
 }
 
 async function deletePost(postId) {
