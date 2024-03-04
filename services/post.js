@@ -1,25 +1,25 @@
-const { Post, Comment, User, Friends } = require('../models/post.js');
+const {Post, Comment, User, Friends} = require('../models/post.js');
 const jwt = require('jsonwebtoken');
 
 let postId = 0;
 let commentId = 0;
 
 async function generateToken(user) {
-    const { username, password } = user
-    console.log(username,password);
-    const existingUser = await User.findOne({ username : username, password: password });
+    const {username, password} = user
+    console.log(username, password);
+    const existingUser = await User.findOne({username: username, password: password});
     if (!existingUser) {
         return null;
     }
-    const payload = { username: username };
+    const payload = {username: username};
     const secretKey = 'your-secret-key';
 
     return jwt.sign(payload, secretKey);
 }
 
 async function registerUser(userData) {
-    const { username } = userData;
-    const existingUser = await User.findOne({ username : username });
+    const {username} = userData;
+    const existingUser = await User.findOne({username: username});
     if (existingUser) {
         return null;
     }
@@ -33,13 +33,14 @@ async function registerUser(userData) {
 }
 
 async function getUserByUsername(username) {
-    const user = await User.findOne({ username: username }, 'username displayName profilePic friends');
+    const user = await User.findOne({username: username}, 'username displayName profilePic friends');
     return user || null;
 }
 
 
 const maxFriendPosts = 20;
 const maxNonFriendPosts = 5;
+
 async function getPosts(username) {
     const user = await getUserByUsername(username);
     console.log(user, username)
@@ -49,7 +50,7 @@ async function getPosts(username) {
     const posts = [];
     let friendPosts = 0;
     let nonFriendPosts = 0;
-    allPosts.forEach((post,index) => {
+    allPosts.forEach((post, index) => {
         let friend = false;
         console.log("holaaaa", friendsList);
         friendsList.forEach((friend) => {
@@ -76,7 +77,7 @@ async function getPosts(username) {
 
 async function createPost(username, userImg, text, img) {
     // Get the ID of the last saved chat
-    const lastPost = await Post.findOne({}, {}, { sort: { id: -1 } }).lean();
+    const lastPost = await Post.findOne({}, {}, {sort: {id: -1}}).lean();
     const lastPostId = lastPost ? lastPost.id : 0;
     console.log("hola")
     const newPostId = lastPostId + 1;
@@ -103,14 +104,14 @@ async function getPostById(postId) {
 
 async function editPost(originalPost, text, img) {
     const newPost = originalPost;
+    console.log("hello world")
     if (text) {
-        newPost.PostText = text;
+        originalPost.PostText = text;
     }
     if (img) {
-        newPost.PostImg = img;
+        originalPost.PostImg = img;
     }
-    await deletePost(originalPost.id);
-    await newPost.save();
+    await originalPost.save();
     return newPost;
 }
 
@@ -132,7 +133,7 @@ async function getFriendsListByUserId(userId) {
 }
 
 async function askToBeFriendOfUser(userId, username) {
-    const user = await User.findOne( {username: userId} );
+    const user = await User.findOne({username: userId});
     if (!user) {
         console.log('couldn\'t find user');
         return null
@@ -181,11 +182,11 @@ async function deleteFriend(userId, friendId) {
 
 async function getAllPostsByUserId(userId, realUser) {
     const user = await User.findOne({username: userId});
-    if (!user.friends.FriendList.includes(realUser)) {
+    if (!(user.friends.FriendList.includes(realUser) || userId === realUser)) {
         console.log("you aren\'t friends");
         return null
     }
-    const posts = await Post.find({Creator: userId})
+    const posts = await Post.find({Creator: user.displayName})
 
     if (!posts) {
         console.log('couldn\'t find posts');
@@ -201,14 +202,51 @@ async function deleteUserById(userId) {
     return user;
 }
 
-async function updateUserById(userId, newUsername, newImg, newDisplayName, newPassword){
+async function updateUserById(userId, newUsername, newImg, newDisplayName, newPassword) {
     const user = await User.findOne({username: userId});
     if (!user) {
         console.log('user doesn\'t exist');
         return null
     }
+    if ((await User.findOne({username: newUsername}))) {
+        console.log('couldn\'t change username stopping process');
+        return null
+    }
+    if ((await User.findOne({displayName: newDisplayName}))) {
+        console.log('couldn\'t change display name stopping process');
+        return null
+    }
     if (newUsername) {
         if (!(await User.findOne({username: newUsername}))) {
+            let users = await User.find();
+            await users.forEach(async (user) => {
+                console.log(user);
+                if (user !== userId) {
+                    let newList = [];
+                    user.friends.FriendList.forEach((friend) => {
+                        if (friend == userId) {
+                            newList.push(newUsername)
+                        } else {
+                            newList.push(friend)
+                        }
+
+                    })
+                    user.friends.FriendList = newList;
+                    console.log("after", user)
+                    let newList2 = [];
+                    user.friends.PendingList.forEach((friend) => {
+                        if (friend == userId) {
+                            newList2.push(newUsername)
+                        } else {
+                            newList2.push(friend)
+                        }
+
+                    })
+                    user.friends.PendingList = newList2;
+                    console.log(user);
+                    await user.save();
+                }
+            })
             user.username = newUsername
         } else {
             console.log('couldn\'t change username stopping process');
@@ -216,11 +254,58 @@ async function updateUserById(userId, newUsername, newImg, newDisplayName, newPa
         }
     }
     if (newImg) {
+        let posts = await Post.find();
+        await posts.forEach(async (post) => {
+            if (post.Creator === user.displayName) {
+                post.CreatorImg = newImg;
+
+            }
+            await post.Comments.forEach(async (comment) => {
+                if (comment.creator === user.displayName) {
+                    comment.creatorImg = newImg;
+                }
+            })
+            await post.save();
+        })
+        let comments = await Comment.find();
+        await comments.forEach(async (comment) => {
+            if (comment.creator === user.displayName) {
+                comment.creatorImg = newImg;
+                await comment.save();
+            }
+        })
+
         user.profilePic = newImg;
+
     }
     if (newDisplayName) {
+        if ((await User.findOne({displayName: newDisplayName}))) {
+            console.log('couldn\'t change display name stopping process');
+            return null
+        }
+        let posts = await Post.find();
+        await posts.forEach(async (post) => {
+            if (post.Creator === user.displayName) {
+                post.Creator = newDisplayName;
+
+            }
+            await post.Comments.forEach(async (comment) => {
+                if (comment.creator === user.displayName) {
+                    comment.creator = newDisplayName;
+                }
+            })
+            await post.save();
+        })
+        let comments = await Comment.find();
+        await comments.forEach(async (comment) => {
+            if (comment.creator === user.displayName) {
+                comment.creator = newDisplayName;
+                await comment.save();
+            }
+        })
         user.displayName = newDisplayName;
     }
+
     if (newPassword) {
         user.password = newPassword;
     }
@@ -228,7 +313,7 @@ async function updateUserById(userId, newUsername, newImg, newDisplayName, newPa
     return user;
 }
 
-async function likePost(postId, username){
+async function likePost(postId, username) {
     const post = await Post.findOne({id: postId});
     if (!post) {
         console.log('could\'t find post');
@@ -239,17 +324,18 @@ async function likePost(postId, username){
     } else {
         post.PeopleLiked = [...post.PeopleLiked, username];
     }
+    post.PostLikes = post.PeopleLiked.length;
     await post.save();
     return post;
 }
 
-async function createComment(postId, username, userImg, commentText){
+async function createComment(postId, username, userImg, commentText) {
     const post = await Post.findOne({id: postId});
     if (!post) {
         console.log('could\'t find post');
         return null
     }
-    const lastComment = await Comment.findOne({}, {}, { sort: { id: -1 } }).lean();
+    const lastComment = await Comment.findOne({}, {}, {sort: {id: -1}}).lean();
     const lastCommentId = lastComment ? lastComment.id : 0;
     console.log("hola")
     const newCommentId = lastCommentId + 1;
@@ -266,7 +352,7 @@ async function createComment(postId, username, userImg, commentText){
 
 }
 
-async function editComment(postId, username, commentText, commentId){
+async function editComment(postId, username, commentText, commentId) {
     const post = await Post.findOne({id: postId});
     if (!post) {
         console.log('could\'t find post');
@@ -297,7 +383,7 @@ async function editComment(postId, username, commentText, commentId){
     return post
 }
 
-async function deleteComment(postId, username, commentId){
+async function deleteComment(postId, username, commentId) {
     const post = await Post.findOne({id: postId});
     if (!post) {
         console.log('could\'t find post');
