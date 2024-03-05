@@ -43,10 +43,13 @@ const maxNonFriendPosts = 5;
 
 async function getPosts(username) {
     const user = await getUserByUsername(username);
-    console.log(user, username)
+    // console.log(user, username)
     let friendsList = user.friends.FriendList;
-    console.log(friendsList)
+    // console.log(friendsList)
+    console.log("hellooooo")
     const allPosts = await Post.find();
+    console.log(allPosts)
+    allPosts.reverse()
     const posts = [];
     let friendPosts = 0;
     let nonFriendPosts = 0;
@@ -192,6 +195,7 @@ async function getAllPostsByUserId(userId, realUser) {
         return null
     }
     console.log(posts);
+    posts.reverse()
     return posts;
 }
 
