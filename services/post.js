@@ -78,7 +78,7 @@ async function getPosts(username) {
     }));
 }
 
-async function createPost(username, userImg, text, img) {
+async function createPost(displayName, username, userImg, text, img) {
     // Get the ID of the last saved chat
     const lastPost = await Post.findOne({}, {}, {sort: {id: -1}}).lean();
     const lastPostId = lastPost ? lastPost.id : 0;
@@ -86,7 +86,8 @@ async function createPost(username, userImg, text, img) {
     const newPostId = lastPostId + 1;
     const newPost = new Post({
         id: newPostId,
-        Creator: username,
+        Creator: displayName,
+        CreatorUsername: username,
         CreatorImg: userImg,
         Comments: [],
         PostImg: img,

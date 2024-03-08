@@ -36,10 +36,11 @@ async function getPosts(req, res) {
 
 async function createPost(req, res) {
     let user = await postService.getUserByUsername(req.user.username);
-    let username = user.displayName;
+    let displayName = user.displayName;
+    let username = user.username;
     let userImg = user.profilePic;
     console.log(userImg)
-    const post = await postService.createPost(username, userImg, req.body.postText, req.body.postImg);
+    const post = await postService.createPost(displayName, username, userImg, req.body.postText, req.body.postImg);
     if (!post) {
         return res.status(404).json({ error: 'Couldn\'t create a post'})
     }
@@ -112,6 +113,9 @@ async function updateUserById(req, res) {
     let newDisplayName = req.body.displayName;
     let newPassword = req.body.password;
     const result = await postService.updateUserById(userId, newUsername, newImg, newDisplayName, newPassword);
+    if (!result) {
+        return res.status(404).json({ error: 'Couldn\'t update' });
+    }
     res.json(result)
 }
 

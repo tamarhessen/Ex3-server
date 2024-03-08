@@ -74,6 +74,10 @@ const PostSchema = new Schema({
         type:String,
         required:true
     },
+    CreatorUsername: {
+        type:String,
+        required: true
+    },
     CreatorImg: {
         type: String,
         required: true
