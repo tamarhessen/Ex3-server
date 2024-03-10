@@ -137,6 +137,10 @@ async function getFriendsListByUserId(userId) {
 
 async function askToBeFriendOfUser(userId, username) {
     const user = await User.findOne({username: userId});
+    if (userId === username) {
+        console.log("can\'t be your own friend")
+        return null
+    }
     if (!user) {
         console.log('couldn\'t find user');
         return null
@@ -153,6 +157,10 @@ async function askToBeFriendOfUser(userId, username) {
 
 async function acceptFriendRequest(userId, friendId) {
     const user = await User.findOne({username: userId});
+    if (userId === friendId) {
+        console.log("can\'t be your own friend")
+        return null
+    }
     if (!user) {
         console.log('couldn\'t find user');
         return null
@@ -161,9 +169,19 @@ async function acceptFriendRequest(userId, friendId) {
         console.log('friend didn\'t ask');
         return null
     }
+    const friend = await User.findOne({username: friendId});
+    if (!friend) {
+        console.log('couldn\'t find friend');
+        return null
+    }
     user.friends.PendingList = user.friends.PendingList.filter(element => element !== friendId);
+    user.friends.FriendList = user.friends.FriendList.filter(element => element !== friendId);
     user.friends.FriendList = [...user.friends.FriendList, friendId];
+    friend.friends.PendingList = friend.friends.PendingList.filter(element => element !== userId);
+    friend.friends.FriendList = friend.friends.FriendList.filter(element => element !== userId);
+    friend.friends.FriendList = [...friend.friends.FriendList, userId];
     await user.save();
+    await friend.save();
     return user.friends;
 }
 

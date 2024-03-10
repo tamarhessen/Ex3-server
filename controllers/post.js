@@ -74,7 +74,7 @@ async function getFriendsListByUserId(req, res) {
 
 async function askToBeFriendOfUser(req, res) {
     let userId = req.params.id;
-    console.log("hola")
+    console.log("hola", userId, req.user.username);
     const result = await postService.askToBeFriendOfUser(userId, req.user.username);
     res.json(result);
 }
