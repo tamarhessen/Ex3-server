@@ -203,7 +203,7 @@ async function getAllPostsByUserId(userId, realUser) {
 async function deleteUserById(userId) {
     const displayName = (await User.findOne({username: userId})).displayName;
     console.log("displayName", displayName);
-    const posts = await Post.deleteMany({Creator: userId});
+    const posts = await Post.deleteMany({CreatorUsername: userId});
     const all_posts = await Post.find();
     await all_posts.forEach(async (post) => {
         post.Comments = post.Comments.filter((comment) => {

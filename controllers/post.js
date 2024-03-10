@@ -101,7 +101,7 @@ async function getPostsByUserId(req, res) {
 }
 
 async function deleteUserById(req, res) {
-    let userId = req.params.id;
+    let userId = req.user.username;
     const result = await postService.deleteUserById(userId);
     res.json(result)
 }
