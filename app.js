@@ -31,7 +31,8 @@ server.listen(process.env.PORT_COMMUNICATION, () => {})
 // Middleware
 app.use(express.json()); // Parse JSON request bodies
 app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded request bodies
-app.use(bodyParser.json({limit:'5mb'})); // Parse JSON request bodies
+app.use(bodyParser.json({limit:'50mb'})); // Parse JSON request bodies
+console.log(bodyParser.json.limit)
 app.use(cors()); // Enable Cross-Origin Resource Sharing
 
 

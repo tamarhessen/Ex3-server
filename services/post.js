@@ -201,8 +201,18 @@ async function getAllPostsByUserId(userId, realUser) {
 }
 
 async function deleteUserById(userId) {
-    const user = await User.findOneAndRemove({username: userId})
+    const displayName = (await User.findOne({username: userId})).displayName;
+    console.log("displayName", displayName);
     const posts = await Post.deleteMany({Creator: userId});
+    const all_posts = await Post.find();
+    await all_posts.forEach(async (post) => {
+        post.Comments = post.Comments.filter((comment) => {
+            if (comment.creator != displayName) {
+                return comment
+            }
+        })
+    })
+    const user = await User.findOneAndRemove({username: userId})
     return user;
 }
 
@@ -334,7 +344,9 @@ async function likePost(postId, username) {
 }
 
 async function createComment(postId, username, userImg, commentText) {
+    console.log("got here")
     const post = await Post.findOne({id: postId});
+    console.log("early post", post);
     if (!post) {
         console.log('could\'t find post');
         return null
@@ -349,9 +361,13 @@ async function createComment(postId, username, userImg, commentText) {
         creatorImg: userImg,
         content: commentText
     })
+    console.log("and here?")
     await newComment.save();
-    post.Comments = [...post.Comments, newComment];
+    post.Comments = [newComment, ...post.Comments];
+    console.log("surely not here?")
+    console.log("post", post)
     await post.save();
+    console.log("what?")
     return post;
 
 }
