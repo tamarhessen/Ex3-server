@@ -205,6 +205,7 @@ async function deleteFriend(userId, friendId) {
     friend.friends.PendingList = friend.friends.PendingList.filter(element => element !== userId);
     friend.friends.FriendList = friend.friends.FriendList.filter(element => element !== userId);
     await user.save();
+    await friend.save();
     return user.friends;
 }
 
