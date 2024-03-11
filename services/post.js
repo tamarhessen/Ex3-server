@@ -187,8 +187,13 @@ async function acceptFriendRequest(userId, friendId) {
 
 async function deleteFriend(userId, friendId) {
     const user = await User.findOne({username: userId});
+    const friend = await User.findOne({username: friendId});
     if (!user) {
         console.log('couldn\'t find user');
+        return null
+    }
+    if (!friend) {
+        console.log('couldn\'t find friend');
         return null
     }
     if (!user.friends.PendingList.includes(friendId) && !user.friends.FriendList.includes(friendId)) {
@@ -197,12 +202,15 @@ async function deleteFriend(userId, friendId) {
     }
     user.friends.PendingList = user.friends.PendingList.filter(element => element !== friendId);
     user.friends.FriendList = user.friends.FriendList.filter(element => element !== friendId);
+    friend.friends.PendingList = friend.friends.PendingList.filter(element => element !== userId);
+    friend.friends.FriendList = friend.friends.FriendList.filter(element => element !== userId);
     await user.save();
     return user.friends;
 }
 
 async function getAllPostsByUserId(userId, realUser) {
     const user = await User.findOne({username: userId});
+    console.log(user, userId, realUser)
     if (!(user.friends.FriendList.includes(realUser) || userId === realUser)) {
         console.log("you aren\'t friends");
         return null
