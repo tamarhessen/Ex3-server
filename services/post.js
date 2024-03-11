@@ -215,6 +215,7 @@ async function getAllPostsByUserId(userId, realUser) {
     }
     console.log(posts);
     posts.reverse()
+    console.log(user.displayName, userId)
     return posts;
 }
 
