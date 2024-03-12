@@ -56,8 +56,8 @@ async function getPosts(username) {
     allPosts.forEach((post, index) => {
         let friend = false;
         console.log("holaaaa", friendsList);
-        friendsList.forEach((friend) => {
-            if (post.Creator === friend) {
+        friendsList.forEach((friendUsername) => {
+            if (post.CreatorUsername === friendUsername) {
                 friend = true;
             }
         })
