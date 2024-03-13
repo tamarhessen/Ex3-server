@@ -1,4 +1,5 @@
 const postService = require('../services/post');
+const {join} = require("path");
 
 // Token Controller
 async function generateToken(req, res) {
@@ -160,6 +161,11 @@ async function getCommentsByPostId(req, res) {
     res.json(result)
 }
 
+async function redirectHome(req, res) {
+    res.sendFile(join(__dirname,'..', 'public', 'index.html'));
+}
+
+
 module.exports = {
     generateToken,
     registerUser,
@@ -179,5 +185,6 @@ module.exports = {
     createComment,
     editComment,
     deleteComment,
-    getCommentsByPostId
+    getCommentsByPostId,
+    redirectHome
 };

@@ -23,8 +23,8 @@ router.get('/api/users/:username', authenticateToken, postController.getUserByUs
 router.post('/api/users', postController.registerUser);
 
 // // Other routes
-// router.get('/*',postController.redirectHome)
-//
+router.get('/*',postController.redirectHome)
+
 router.put('/api/users/:id', authenticateToken, postController.updateUserById);
 router.patch('/api/users/:id', authenticateToken, postController.updateUserById);
 router.delete('/api/users/:id', authenticateToken, postController.deleteUserById);
