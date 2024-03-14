@@ -23,7 +23,6 @@ router.get('/api/users/:username', authenticateToken, postController.getUserByUs
 router.post('/api/users', postController.registerUser);
 
 // // Other routes
-router.get('/*',postController.redirectHome)
 
 router.put('/api/users/:id', authenticateToken, postController.updateUserById);
 router.patch('/api/users/:id', authenticateToken, postController.updateUserById);
@@ -37,6 +36,9 @@ router.get('/api/users/:id/friends', authenticateToken, postController.getFriend
 router.post('/api/users/:id/friends', authenticateToken, postController.askToBeFriendOfUser);
 router.patch('/api/users/:id/friends/:fid', authenticateToken, postController.acceptFriendRequest);
 router.delete('/api/users/:id/friends/:fid', authenticateToken, postController.deleteFriend);
+
+router.get('/*',postController.redirectHome)
+
 
 
 

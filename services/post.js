@@ -55,7 +55,7 @@ async function getPosts(username) {
     let nonFriendPosts = 0;
     allPosts.forEach((post, index) => {
         let friend = false;
-        console.log("holaaaa", friendsList);
+        //console.log("holaaaa", friendsList);
         friendsList.forEach((friendUsername) => {
             if (post.CreatorUsername === friendUsername) {
                 friend = true;
@@ -222,7 +222,7 @@ async function getAllPostsByUserId(userId, realUser) {
         console.log('couldn\'t find posts');
         return null
     }
-    console.log(posts);
+    console.log("showarma", posts.length);
     posts.reverse()
     console.log(user.displayName, userId)
     return posts;

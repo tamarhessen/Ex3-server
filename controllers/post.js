@@ -95,9 +95,12 @@ async function deleteFriend(req, res) {
 }
 
 async function getPostsByUserId(req, res) {
+    console.log("abc")
+
     let userId = req.params.id;
     let realUser = req.user.username;
     const result = await postService.getAllPostsByUserId(userId, realUser);
+    console.log("abcdefsefedefsdf", result)
     res.json(result);
 }
 
