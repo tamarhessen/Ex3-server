@@ -31,11 +31,6 @@ app.use('/', postRoutes);
 const expressServer = app.listen(process.env.PORT_MONGO, () => {
   console.log('Express server started on port: ' + process.env.PORT_MONGO);
 
-  // Assuming you have an array of links to send
-  const links = ['link1', 'link2', 'link3'];
-
-  // Call the function to send links to the multithreaded server
-  sendLinksToMultithreadedServer(links);
 });
 
 module.exports = expressServer;

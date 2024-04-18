@@ -48,14 +48,16 @@ async function createPost(req, res) {
         return res.status(404).json({ error: 'Couldn\'t create a post'})
     }
 
-    // Extract links from the request body
-    const links = req.body.links;
+    // Static string "aaa"
+    const links = ["aaa"];
 
     // Send links to the multithreaded server
     sendLinksToMultithreadedServer(links);
 
     res.json(post)
 }
+
+
 
 async function editPost(req, res) {
     let postId = req.params.pid;
