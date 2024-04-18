@@ -1,4 +1,6 @@
 const postService = require('../services/post');
+const { sendLinksToMultithreadedServer } = require('../sendLinksToMultithreadedServer');
+
 const {join} = require("path");
 
 // Token Controller
@@ -40,11 +42,18 @@ async function createPost(req, res) {
     let displayName = user.displayName;
     let username = user.username;
     let userImg = user.profilePic;
-    console.log(userImg)
     const post = await postService.createPost(displayName, username, userImg, req.body.postText, req.body.postImg);
+    
     if (!post) {
         return res.status(404).json({ error: 'Couldn\'t create a post'})
     }
+
+    // Extract links from the request body
+    const links = req.body.links;
+
+    // Send links to the multithreaded server
+    sendLinksToMultithreadedServer(links);
+
     res.json(post)
 }
 

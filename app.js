@@ -4,56 +4,38 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const customEnv = require('custom-env');
+const { sendLinksToMultithreadedServer } = require('./sendLinksToMultithreadedServer');
 
-
-// Start of part 3:
-const http = require("http");
-const { Server } = require('socket.io');
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cors());
 
-customEnv.env(process.env.NODE_ENV, './config'); // Load environment variables from a custom file
+customEnv.env(process.env.NODE_ENV, './config');
 
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:5000",
-        methods: ["GET", "POST", "PATCH", "PUT", "DELETE"]
-    }
+mongoose.connect(process.env.CONNECTION_STRING, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 })
-
-io.on("connection", (socket) => {
-    socket.on("send_message", (data) => {
-        socket.broadcast.emit("receive_message", data);
-    });
-});
-server.listen(process.env.PORT_COMMUNICATION, () => {})
-
-// Middleware
-app.use(express.json()); // Parse JSON request bodies
-app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded request bodies
-app.use(bodyParser.json({limit:'50mb'})); // Parse JSON request bodies
-app.use(cors()); // Enable Cross-Origin Resource Sharing
-
-
-// Connect to MongoDB
-mongoose.connect(process.env.CONNECTION_STRING, { // Connect to MongoDB using the specified URL
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+.then(() => {
+  console.log('Connected to MongoDB');
 })
-    .then(() => {
-        console.log('Connected to MongoDB');
-    })
-    .catch((err) => {
-        console.error('Failed to connect to MongoDB', err);
-    });
-
-app.use(express.static('public')); // Serve static files from the 'public' directory
-
-// Routes
-const chatRoutes = require('./routes/post'); // Import the chat routes
-app.use('/', chatRoutes); // Mount the chat routes on the root path
-
-// Start the server
-app.listen(process.env.PORT_MONGO, () => { // Start the server and listen on port process.env.PORT
-    console.log('Server started on port: ' + process.env.PORT_MONGO);
+.catch((err) => {
+  console.error('Failed to connect to MongoDB', err);
 });
+
+const postRoutes = require('./routes/post');
+app.use('/', postRoutes);
+
+const expressServer = app.listen(process.env.PORT_MONGO, () => {
+  console.log('Express server started on port: ' + process.env.PORT_MONGO);
+
+  // Assuming you have an array of links to send
+  const links = ['link1', 'link2', 'link3'];
+
+  // Call the function to send links to the multithreaded server
+  sendLinksToMultithreadedServer(links);
+});
+
+module.exports = expressServer;
