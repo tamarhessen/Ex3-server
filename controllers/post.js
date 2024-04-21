@@ -56,7 +56,7 @@ async function createPost(req, res) {
     }
     let result = await sendToMultithreadedServer(send);
     console.log(send, result);
-    var post;
+    let post;
     if (result === "0") {
         post = await postService.createPost(displayName, username, userImg, req.body.postText, req.body.postImg);
     }
@@ -73,7 +73,16 @@ async function editPost(req, res) {
     if (!post) {
         return res.status(404).json({ error: 'Couldn\'t find post'})
     }
-    const newPost = await postService.editPost(post, req.body.postText, req.body.postImg);
+    let data = findLinks(req.body.postText);
+    let send = "2"
+    for (let link of data) {
+        send = send + " " + link;
+    }
+    let result = await sendToMultithreadedServer(send);
+    let newPost;
+    if (result === "0") {
+        newPost = await postService.editPost(post, req.body.postText, req.body.postImg);
+    }
     res.json(newPost)
 }
 
