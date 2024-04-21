@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const customEnv = require('custom-env');
+const { sendToMultithreadedServer } = require('./connectTCPServer');
 
 
 // Start of part 3:
@@ -57,3 +58,11 @@ app.use('/', chatRoutes); // Mount the chat routes on the root path
 app.listen(process.env.PORT_MONGO, () => { // Start the server and listen on port process.env.PORT
     console.log('Server started on port: ' + process.env.PORT_MONGO);
 });
+
+function sendDataToTCP() {
+    const bloomFilterFormat = "3" + " " + process.env.BLOOMFILTER_LENGTH + " " + process.env.BLOOMFILTER_FUNCTIONS;
+    sendToMultithreadedServer(bloomFilterFormat);
+    const blacklist = "1" + " " + process.env.BLACKLISTED_LINKS;
+    sendToMultithreadedServer(blacklist);
+}
+sendDataToTCP();

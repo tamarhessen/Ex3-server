@@ -1,5 +1,7 @@
 const postService = require('../services/post');
 const {join} = require("path");
+const { sendToMultithreadedServer } = require('../connectTCPServer');
+
 
 // Token Controller
 async function generateToken(req, res) {
@@ -34,14 +36,30 @@ async function getPosts(req, res) {
     }
     res.json(posts)
 }
+function findLinks(text) {
+    // Regular expression to match URLs
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    var matches = text.match(urlRegex);
+    return matches || [];
+}
 
 async function createPost(req, res) {
     let user = await postService.getUserByUsername(req.user.username);
     let displayName = user.displayName;
     let username = user.username;
     let userImg = user.profilePic;
-    console.log(userImg)
-    const post = await postService.createPost(displayName, username, userImg, req.body.postText, req.body.postImg);
+    console.log(userImg);
+    let data = findLinks(req.body.postText);
+    let send = "2"
+    for (let link of data) {
+        send = send + " " + link;
+    }
+    let result = await sendToMultithreadedServer(send);
+    console.log(send, result);
+    var post;
+    if (result === "0") {
+        post = await postService.createPost(displayName, username, userImg, req.body.postText, req.body.postImg);
+    }
     if (!post) {
         return res.status(404).json({ error: 'Couldn\'t create a post'})
     }
