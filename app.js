@@ -59,10 +59,12 @@ app.listen(process.env.PORT_MONGO, () => { // Start the server and listen on por
     console.log('Server started on port: ' + process.env.PORT_MONGO);
 });
 
-function sendDataToTCP() {
+async function sendDataToTCP() {
     const bloomFilterFormat = "3" + " " + process.env.BLOOMFILTER_LENGTH + " " + process.env.BLOOMFILTER_FUNCTIONS;
-    sendToMultithreadedServer(bloomFilterFormat);
     const blacklist = "1" + " " + process.env.BLACKLISTED_LINKS;
-    sendToMultithreadedServer(blacklist);
+    let result = await sendToMultithreadedServer(bloomFilterFormat);
+    if (result) {
+        await sendToMultithreadedServer(blacklist)
+    }
 }
 sendDataToTCP();
