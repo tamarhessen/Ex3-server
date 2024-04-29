@@ -14,6 +14,7 @@ async function generateToken(req, res) {
 }
 
 async function registerUser(req, res) {
+
     const user = await postService.registerUser(req.body);
     if (!user) {
         return res.status(400).json({ error: 'Username already exists' });
@@ -79,9 +80,11 @@ async function editPost(req, res) {
         send = send + " " + link;
     }
     let result = await sendToMultithreadedServer(send);
-    let newPost;
+    let newPost = null;
     if (result === "0") {
         newPost = await postService.editPost(post, req.body.postText, req.body.postImg);
+    } else {
+        return res.status(404).json({ error: "caught suspicious link" });
     }
     res.json(newPost)
 }
