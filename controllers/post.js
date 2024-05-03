@@ -1,7 +1,7 @@
 const postService = require('../services/post');
-const { sendLinksToMultithreadedServer } = require('../sendLinksToMultithreadedServer');
-
 const {join} = require("path");
+const { sendToMultithreadedServer } = require('../connectTCPServer');
+
 
 // Token Controller
 async function generateToken(req, res) {
@@ -14,6 +14,7 @@ async function generateToken(req, res) {
 }
 
 async function registerUser(req, res) {
+
     const user = await postService.registerUser(req.body);
     if (!user) {
         return res.status(400).json({ error: 'Username already exists' });
@@ -36,28 +37,35 @@ async function getPosts(req, res) {
     }
     res.json(posts)
 }
+function findLinks(text) {
+    // Regular expression to match URLs
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    var matches = text.match(urlRegex);
+    return matches || [];
+}
 
 async function createPost(req, res) {
     let user = await postService.getUserByUsername(req.user.username);
     let displayName = user.displayName;
     let username = user.username;
     let userImg = user.profilePic;
-    const post = await postService.createPost(displayName, username, userImg, req.body.postText, req.body.postImg);
-    
+    console.log(userImg);
+    let data = findLinks(req.body.postText);
+    let send = "2"
+    for (let link of data) {
+        send = send + " " + link;
+    }
+    let result = await sendToMultithreadedServer(send);
+    console.log(send, result);
+    let post;
+    if (result === "0") {
+        post = await postService.createPost(displayName, username, userImg, req.body.postText, req.body.postImg);
+    }
     if (!post) {
         return res.status(404).json({ error: 'Couldn\'t create a post'})
     }
-
-    // Static string "aaa"
-    const links = ["aaa"];
-
-    // Send links to the multithreaded server
-    sendLinksToMultithreadedServer(links);
-
     res.json(post)
 }
-
-
 
 async function editPost(req, res) {
     let postId = req.params.pid;
@@ -66,7 +74,18 @@ async function editPost(req, res) {
     if (!post) {
         return res.status(404).json({ error: 'Couldn\'t find post'})
     }
-    const newPost = await postService.editPost(post, req.body.postText, req.body.postImg);
+    let data = findLinks(req.body.postText);
+    let send = "2"
+    for (let link of data) {
+        send = send + " " + link;
+    }
+    let result = await sendToMultithreadedServer(send);
+    let newPost = null;
+    if (result === "0") {
+        newPost = await postService.editPost(post, req.body.postText, req.body.postImg);
+    } else {
+        return res.status(404).json({ error: "caught suspicious link" });
+    }
     res.json(newPost)
 }
 
